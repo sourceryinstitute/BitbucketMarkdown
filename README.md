@@ -1,4 +1,4 @@
-[Coarray Fortran Support Status](#coarray-fortran-support-status) 
+# [Coarray Fortran Support Status](#coarray-fortran-support-status) 
 
  *  [Compilers]
      * [OpenCoarrays-Aware Compilers]
