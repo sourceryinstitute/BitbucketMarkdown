@@ -1,7 +1,7 @@
 # [Coarray Fortran Support Status](#coarray-fortran-support-status) 
 
  *  [Compilers]
-     * [OpenCoarrays-Aware Compilers]
+     * [OpenCoarrays-Aware CAF Compilers]
      * [Non-OpenCoarrays-Aware CAF Compilers]
      * [Non-CAF Compilers]
  *  [OpenCoarrays Libraries]
@@ -18,11 +18,17 @@
 
 The OpenCoarrays CMake build and test scripts detect the compiler's identity and version number and the operating system and  use that information to build functionality into the [OpenCoarrays Libraries] that is appropriate for the chosen compiler.  We target three categories of compilers:
 
-<a name="opencoarrays-aware-compilers">
-* **[OpenCoarrays-Aware Compilers]**</a> accept CAF syntax and generate calls to the OpenCoarrays application binary interface ([ABI]).  Current OpenCoarrays-aware compilers include
-* **[Non-OpenCoarrays-Aware CAF Compilers]** accept CAF syntax but do not generate calls to the OpenCoarrays ABI.  Users can mix the compiler's native CAF support with calls to Fortran wrappers for the OpenCoarrays [ABI].  Users acess the wrappers via use association with the [opencoarrays] module: for example, `use opencoarrays, only : co_sum`.  In one common use case, the compiler handles all point-to-point communication via bracketed codimensions (`a = b[1]`), while OpenCoararys handles all collective communication via the collective subroutines proposed for Fortran 2015 in the draft Technical Specification [TS 18508]
+<a name="opencoarrays-aware-caf=compilers">
+* **OpenCoarrays-Aware CAF Compilers**</a> accept CAF syntax and generate calls to the OpenCoarrays application binary interface ([ABI]).  Currently only the GNU Fortran compiler versions 5.1 or later are OpenCoarrays-aware.
+* <a name="non-opencoarrays-aware-caf=compilers">
+* **Non-OpenCoarrays-Aware CAF Compilers**</a> accept CAF syntax but do not generate calls to the OpenCoarrays ABI.  Users can mix such a compiler's native CAF support with OpenCoarrays CAF functionality.  Programs access the OpenCoarrays functionality via use association wiht [opencoarrays] module using a statemen of the form
+    
+    use opencoarrays, only : co_sum
 
+In one common use case, the compiler handles all point-to-point communication via bracketed codimensions (`a = b[1]`), while OpenCoararys handles all collective communication via the collective subroutines proposed for Fortran 2015 in the draft Technical Specification [TS 18508]
 * [Non-CAF Compilers]
+* 
+
 * [Cray Compiler Environment]: fully Fortran 2008 compliant; also supports the proposed Fortran 2015 collective subroutine
 [GNU Fortran] 5.1 or later: supports most Fortran 2008 CAF features and some proposed Fortran 2015 CAF features   
 
