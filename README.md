@@ -1,126 +1,112 @@
-# [Coarray Fortran Support Status](#coarray-fortran-support-status) 
+# [Coarray Fortran Support Status](#coarray-fortran-support-status) #
 
- *  [Compilers]
-     * [OpenCoarrays-Aware CAF Compilers]
+ *  [Compiler Status]
+     * [OpenCoarrays-Aware Compilers]
      * [Non-OpenCoarrays-Aware CAF Compilers]
      * [Non-CAF Compilers]
- *  [OpenCoarrays Libraries]
+ *  [Library Status]
      *  [libcaf_mpi]
      *  [libcaf_gasnet]
-     *  [Unsupported libraries]
+     *  [libcaf_x]
+     *  [libcaf_single]
  *  [Known Issues]
- *  [Basic Communication Support]
- *  [Other Feature Coverage]
+ *  [To-Do List]
 
-<a name="end-user-installation">
-## Compilers##
-</a>
+<a name="compiler-status">
+## Compiler Status ##</a>
 
-The OpenCoarrays CMake build and test scripts detect the compiler's identity and version number and the operating system and  use that information to build functionality into the [OpenCoarrays Libraries] that is appropriate for the chosen compiler.  We target three categories of compilers:
+The OpenCoarrays CMake build and test scripts detect the compiler identity, version, and operating system (OS).  The scripts use this information to build and test the approproiate functionality for the compiler and OS. Each current compilers' status falls into one of three categories:
 
-<a name="opencoarrays-aware-caf=compilers">
-* **OpenCoarrays-Aware CAF Compilers**</a> accept CAF syntax and generate calls to the OpenCoarrays application binary interface ([ABI]).  Currently only the GNU Fortran compiler versions 5.1 or later are OpenCoarrays-aware.
-* <a name="non-opencoarrays-aware-caf=compilers">
-* **Non-OpenCoarrays-Aware CAF Compilers**</a> accept CAF syntax but do not generate calls to the OpenCoarrays ABI.  Users can mix such a compiler's native CAF support with OpenCoarrays CAF functionality.  Programs access the OpenCoarrays functionality via use association wiht [opencoarrays] module using a statemen of the form
-    
-    use opencoarrays, only : co_sum
-
-In one common use case, the compiler handles all point-to-point communication via bracketed codimensions (`a = b[1]`), while OpenCoararys handles all collective communication via the collective subroutines proposed for Fortran 2015 in the draft Technical Specification [TS 18508]
-* [Non-CAF Compilers]
-* 
-
-* [Cray Compiler Environment]: fully Fortran 2008 compliant; also supports the proposed Fortran 2015 collective subroutine
-[GNU Fortran] 5.1 or later: supports most Fortran 2008 CAF features and some proposed Fortran 2015 CAF features   
-
-For the status of the compiler-side coarray support in GCC/gfortran,  
-see https://gcc.gnu.org/wiki/Coarray and below.  User submissions of 
-bug reports are welcomed via the [Issues](https://github.com/sourceryinstitute/opencoarrays/issues) page.  
-To contribute code, including documentation and tests, see [CONTRIBUTIONS](./CONTRIBUTIONS).
-
-OpenCoarrays builds the following libraries
--------------------------------------------
-
-* LIBCAF_MPI (Default CMake build): Uses the Message Passing Interface  
-  (MPI) 3.0 one-sided communication API, which exploits a hardware  
-  platform's native support for Remote Direct Memory Access (RDMA) if 
-  available.
-
-* LIBCAF_GASNet (Advanced Make build): Experimental version that is 
-  currently out-of-date but might exhibit higher performance than MPI  
-  on platforms for which GASNet provides a conduit tuned for the .  
-  plaform Contact the [OpenCoarrays Google Group](https://groups.google.com/forum/#!forum/opencoarrays) 
-  for further information.
+<a name="opencoarrays-aware-caf-compilers">
+ * **OpenCoarrays-Aware (OCA) CAF Compilers**</a> 
+     * _Definition:_ The compiler translates CAF statements into OpenCoarrays application binary interface ([ABI]) calls.
+     * _Example_: GNU Fortran 5.1 or later (see [https://gcc.gnu.org/wiki/Coarray] for the compiler's CAF status..
+     * _Use case_: compile most Fortran 2008 coarray programs and some programs that use proposed Fortran 2015 features.
+<a name="non-opencoarrays-aware-caf-compilers">
+ * **Non-OCA CAF Compilers**</a> 
+     * _Definition:_ The compiler supports CAF but does not generate calls to the OpenCoarrays ABI.  
+     * _Examples_: Cray compiler (except on CS Series clusters), Intel compiler (except on OS X).  
+     * _Use case_: extend the compiler's native CAF using the [opencoarrys module] types and procedures.
+<a name="non-caf-compilers">
+ * **Non-CAF Compilers**</a> 
+     * _Definition_: The compiler does not support CAF itself, but user can.
+     * _Examples_: GNU Fortran 4.9 or any compiler not mentioned above.
+     * _Use case_: Use the OpenCoarrays "caf" compiler wrapper to compile those CAF  programs for which the proposed Fortran 2015 collective subroutines cover all of the application's communication requirements.
   
-* Also included: unsupported Single (sequential) and ARMCI libraries.
-  These are not maintained and are provided primarily for historical 
-  reasons or as a starting point for future projects that choose to 
-  update and build upon these implementations.
+We have encountered several research applications that match the latter use case.  If you encounter difficulties, please submit a bug report or feature request via the [Issues] page. Also submit a feature request to the relevant compiler technical support.
 
+The OpenCoarrays team offers contract development and support for making compilers OpenCoarrays-aware.  If this is of interest, please inform the compiler's technical support as well as the OpenCoarrays team.   To contribute code, including documentation and tests, see the [CONTRIBUTIONS] file.  To contribute funding, including funding in support of feature reqeusts, see the [Sourcery Store].
 
-Known Issues
-------------
-* The extensions in the [opencoarrays module](./src/extensions/opencoarrays.F90)  
-  provide some coarray capabilities to users of non-OpenCoarrays-aware 
-  compilers.  For a listing of the limitations, execute the "caf" bash 
-  script with no arguments.  CMake builds the "caf" script in the "bin"
-  directory of the OpenCoarrays installation path.  The most significant 
-  limitation is the lack of support for square-bracket syntax. The 
-  extensions are currently
-  usefulf in applications for which the [proposed Fortran 2015 collective 
-  subroutines](http://isotc.iso.org/livelink/livelink?func=ll&objId=17181227&objAction=Open) 
-  cover the applications communicaiton needs or applications or
-  applications for which another communication library provides any 
-  communication needs not covered by the proposed collectives
+<a name="library-status">
+## Library Status ##</a>
+
+* **libcaf_mpi** (Default CMake build): Production transport layer that uses
+  the Message Passing Interface (MPI) 3.0 one-sided communication, which 
+  exploits a hardware platform's native support for Remote Direct Memory 
+  Access (RDMA) if available.
+* **libcaf_x** (where x = [CUDA], [OpenMP], [Pthreads], [OpenSHMEM], etc.): the 
+  OpenCoarrays [ABI] design facilitates implementation atop any one of several
+  low-level parallel programming models, vectorization APIs, or combination 
+  thereof. We have performed limited evaluations and research development of 
+  versions based on multiple APIs.  Please email the [OpenCoarrays Google Group]
+  for contract support on targeting other APIs and hardware, including, for example,
+  graphics processing units (GPUs) and heterogeneous CPU/GPU platforms.
+* **libcaf_gasnet** (Advanced Make build): Experimental transport layer that 
+  is currently out-of-date but might exhibit higher performance than MPI on
+  platforms for which GASNet provides a tuned conduit.  Contact the 
+  [OpenCoarrays Google Group] for further information.
+* **libcaf_armci** (Unsupported): developed for research purposes and evaluation.
+* **libcaf_single** (Unsupported): developed to mirror the like-named library that
+  is included in GNU Fortran to facilitate compiling single-image (sequential)
+  executables from CAF programs in the absence of a parallel communication library.
+
+<a name="known-issues">
+## Known Issues ##</a>
+
+ * The [opencoarrays module] and "caf" compiler wrapper do not support the square-bracket
+  syntax required for point-to-point communication.  This limitation only impacts 
+  [non-CAF compilers]. For a list of other limitations with non-CAF compilers, execute
+  the "caf' bash script with no arguments.  The "caf" script is installed in the "bin" 
+  subdirectory of the installation path.
 * Efficient strided array transfer support is available only for intrinsic types.
 * Efficient strided array transfer support is not available for remote-to-remote transfers.
 * Overwriting a coarray with itself is not managed efficiently for strided transfers.
-   
-Basic Communication Support
----------------------------
+* The `co_reduce` collective subroutine requires either GCC 4.9, 5.3, or 6.0 and only 
+  supports intrinsic types.
+* Communication
+     * Vector subscripts are not yet supported
+     * For character assignments, some issues with padding and character kind conversions exist.
+     * For array assignments, some issues with numeric type conversion exist.
 
-* Mostly complete
-* Vector subscripts not yet implemented
-* For character assignments, some issues with padding and
-  character kind conversions exist.
-* For array assignments, some issues with numeric type conversion exist.
+<a name="compiler-side-issues">
+## Compiler-side (GCC) Issues ##</a>
 
-Compiler-side (GCC) issues
---------------------------
-* Allocatable coarrays and derived-type coarrays are supported but 
-  derived-type coarrays containing allocatable/pointer components are not 
-  yet handled properly.
-* Problems exist with array access to a corray in combination with a scalar
-  component access: coarray(:,:)[i]%comp.
-* Internal compiler error (ICE) with nonallocatable polymorphic coarrays and
-  ASSOCIATE or SELECT TYPE
+ * Allocatable coarrays and derived-type coarrays are supported but 
+   derived-type coarrays containing allocatable/pointer components are not 
+   yet handled properly.
+ * Problems exist with array access to a corray in combination with a scalar
+   component access: `coarray(:,:)[i]%comp`.
+ * Internal compiler error (ICE) with non-allocatable, polymorphic coarrays and
+   `associate` or `select type`
 
-Atomics
--------
-
-* Implemented in LIBCAF_MPI.
-
-Locking
--------
-
-* Implemented in LIBCAF_MPI.
-
-Critical Sections
------------------
-
-* Implemented in LIBCAF_MPI.
-
-Collectives
------------
-
-* Implemented in LIBCAF_MPI without compiler-side (GCC) support for 
-  finalization or allocatable components.
-* A limited set of intrinsic types and kinds are supported, e.g., 
-  integer(c_int), real(c_double), character(kind=c_kind), logical, 
-  and complex(c_double).  Users are invited to submit pull requests with
-  support for additional kinds.
+<a name="other-language-features">
+## Other Language Features ##</a>
+ 
+ * **Atomics**: Implemented in libcaf_mpi.
+ * **Locking**: Implemented in libcaf_mpi.
+ * **Critical Sections**:  Implemented in libcaf_mpi.
+ * **Collective Subroutines**:
+     * Implemented in libcaf_mpi without compiler-side (GCC) support for 
+       type finalization or allocatable components of derived-type coarrays.
+     * A limited set of intrinsic types and kinds are supported, e.g., 
+       integer(c_int), real(c_double), character(kind=c_kind), logical, 
+       and complex(c_double).  Users are encouraged to fork the OpenCoarrays
+       repository and submit pull requests via [GitHub] with support for 
+       additional kinds.  See [CONTRIBUTING] for more information.
   
-To-Do List
-----------
+<a name="to-do-list">
+## To-Do List ##</a>
+
 * Additional tests and documentation.
 * Improvement of error handling and diagnostics, including but not
   limited to filling the ERRMSG= variable in case of errors.
@@ -129,13 +115,21 @@ To-Do List
   see the GCC source code files in gcc/testsuite/gfortran.dg/, 
   in particular, the "dg-do run" tests in coarray*f90 and coarray/).
 
+[Compiler Status]: #compiler-status
+[GitHub]: https://github.com/sourceryinstitute/opencoarrays.git
+[To-Do List]: #to-do-list
+[foMPI]: http://spcl.inf.ethz.ch/Research/Parallel_Programming/foMPI/
+[OpenCoarrays Google Group]: https://groups.google.com/forum/#!forum/opencoarrays
+[Sourcery Store]: http://www.sourceryinstitute.org/store
+[Issues]: https://github.com/sourceryinstitute/opencoarrays/issues 
 [Non-OpenCoarrays-Aware CAF Compilers]: #non-opencoarrays-aware
-[opencoarrays]: ./src/extensions/opencoarrays
+[opencoarrays module]: ./src/extensions/opencoarrays
 [ABI]: https://gcc.gnu.org/onlinedocs/gfortran/Function-ABI-Documentation.html#Function-ABI-Documentation
 [Compilers]: #compilers
 [OpenCoarrays-Aware Compilers]: #opencoarrays-aware-compilers
 [Other CAF Compilers]: #other-caf-compilers
 [Non-CAF Compilers]: #non-caf-compilers
+[non-CAF compilers]: #non-caf-compilers
 [OpenCoarrays Libraries]: #opencoarrays-libraries
 [libcaf_mpi]: #libcaf-mpi
 [libcaf_gasnet]: #libcaf-gasnet
